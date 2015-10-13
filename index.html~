@@ -20,8 +20,8 @@
 			<nav id="nav">
 				<ul class="container">
 					<li><a href="#top">Top</a></li>
-					<li><a href="#work">Stuff</a></li>
-					<li><a href="#portfolio">My Setup</a></li>
+					<li><a href="#work">Work</a></li>
+					<li><a href="#portfolio">Portfolio</a></li>
 					<li><a href="#contact">Contact</a></li>
 				</ul>
 			</nav>
@@ -93,7 +93,7 @@ I am doing Java with IntellIj IDEA.</p>
 						<div class="row">
 							<div class="4u 12u(mobile)">
 								<article class="box style2">
-									<a href="https://commons.wikimedia.org/wiki/File:%E4%B8%AD%E7%A7%8B%E3%81%AE%E5%90%8D%E6%9C%882.JPG" class="image featured"><img src="images/Moon.JPG" alt="" /></a>
+									<a href="#" class="image featured"><img src="images/Moon.JPG" alt="" /></a>
 									<h3>Recent Photo</h3>
 									<p>I took Photo About moon with A-7.</p>
 								</article>
@@ -123,8 +123,8 @@ I am doing Java with IntellIj IDEA.</p>
 			<div class="wrapper style4">
 				<article id="contact" class="container 75%">
 					<header>
-						<h2>Please Give me feedback.</h2>
-					
+						<h2>Have me make stuff for you.</h2>
+						<p>Ornare nulla proin odio consequat sapien vestibulum ipsum sed lorem.</p>
 					</header>
 					<div>
 						<div class="row">
