@@ -1,165 +1,248 @@
 /*
-	Solid State by HTML5 UP
+	Helios by HTML5 UP
 	html5up.net | @n33co
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
 (function($) {
 
-	"use strict";
+	var settings = {
+
+		// Carousels
+			carousels: {
+				speed: 4,
+				fadeIn: true,
+				fadeDelay: 250
+			},
+
+	};
 
 	skel.breakpoints({
-		xlarge:	'(max-width: 1680px)',
-		large:	'(max-width: 1280px)',
-		medium:	'(max-width: 980px)',
-		small:	'(max-width: 736px)',
-		xsmall:	'(max-width: 480px)'
+		wide: '(max-width: 1680px)',
+		normal: '(max-width: 1280px)',
+		narrow: '(max-width: 960px)',
+		narrower: '(max-width: 840px)',
+		mobile: '(max-width: 736px)'
 	});
 
 	$(function() {
 
 		var	$window = $(window),
-			$body = $('body'),
-			$header = $('#header'),
-			$banner = $('#banner');
+			$body = $('body');
 
 		// Disable animations/transitions until the page has loaded.
 			$body.addClass('is-loading');
 
 			$window.on('load', function() {
-				window.setTimeout(function() {
-					$body.removeClass('is-loading');
-				}, 100);
+				$body.removeClass('is-loading');
 			});
+
+		// CSS polyfills (IE<9).
+			if (skel.vars.IEVersion < 9)
+				$(':last-child').addClass('last-child');
 
 		// Fix: Placeholder polyfill.
 			$('form').placeholder();
 
-		// Prioritize "important" elements on medium.
-			skel.on('+medium -medium', function() {
+		// Prioritize "important" elements on mobile.
+			skel.on('+mobile -mobile', function() {
 				$.prioritize(
-					'.important\\28 medium\\29',
-					skel.breakpoint('medium').active
+					'.important\\28 mobile\\29',
+					skel.breakpoint('mobile').active
 				);
 			});
 
-		// Header.
-			if (skel.vars.IEVersion < 9)
-				$header.removeClass('alt');
+		// Dropdowns.
+			$('#nav > ul').dropotron({
+				mode: 'fade',
+				speed: 350,
+				noOpenerFade: true,
+				alignment: 'center'
+			});
 
-			if ($banner.length > 0
-			&&	$header.hasClass('alt')) {
+		// Scrolly links.
+			$('.scrolly').scrolly();
 
-				$window.on('resize', function() { $window.trigger('scroll'); });
+		// Off-Canvas Navigation.
 
-				$banner.scrollex({
-					bottom:		$header.outerHeight(),
-					terminate:	function() { $header.removeClass('alt'); },
-					enter:		function() { $header.addClass('alt'); },
-					leave:		function() { $header.removeClass('alt'); }
-				});
+			// Navigation Button.
+				$(
+					'<div id="navButton">' +
+						'<a href="#navPanel" class="toggle"></a>' +
+					'</div>'
+				)
+					.appendTo($body);
 
-			}
+			// Navigation Panel.
+				$(
+					'<div id="navPanel">' +
+						'<nav>' +
+							$('#nav').navList() +
+						'</nav>' +
+					'</div>'
+				)
+					.appendTo($body)
+					.panel({
+						delay: 500,
+						hideOnClick: true,
+						hideOnSwipe: true,
+						resetScroll: true,
+						resetForms: true,
+						target: $body,
+						visibleClass: 'navPanel-visible'
+					});
 
-		// Menu.
-			var $menu = $('#menu');
+			// Fix: Remove navPanel transitions on WP<10 (poor/buggy performance).
+				if (skel.vars.os == 'wp' && skel.vars.osVersion < 10)
+					$('#navButton, #navPanel, #page-wrapper')
+						.css('transition', 'none');
 
-			$menu._locked = false;
+		// Carousels.
+			$('.carousel').each(function() {
 
-			$menu._lock = function() {
+				var	$t = $(this),
+					$forward = $('<span class="forward"></span>'),
+					$backward = $('<span class="backward"></span>'),
+					$reel = $t.children('.reel'),
+					$items = $reel.children('article');
 
-				if ($menu._locked)
-					return false;
+				var	pos = 0,
+					leftLimit,
+					rightLimit,
+					itemWidth,
+					reelWidth,
+					timerId;
 
-				$menu._locked = true;
+				// Items.
+					if (settings.carousels.fadeIn) {
 
-				window.setTimeout(function() {
-					$menu._locked = false;
-				}, 350);
+						$items.addClass('loading');
 
-				return true;
+						$t.onVisible(function() {
+							var	timerId,
+								limit = $items.length - Math.ceil($window.width() / itemWidth);
 
-			};
+							timerId = window.setInterval(function() {
+								var x = $items.filter('.loading'), xf = x.first();
 
-			$menu._show = function() {
+								if (x.length <= limit) {
 
-				if ($menu._lock())
-					$body.addClass('is-menu-visible');
+									window.clearInterval(timerId);
+									$items.removeClass('loading');
+									return;
 
-			};
+								}
 
-			$menu._hide = function() {
+								if (skel.vars.IEVersion < 10) {
 
-				if ($menu._lock())
-					$body.removeClass('is-menu-visible');
+									xf.fadeTo(750, 1.0);
+									window.setTimeout(function() {
+										xf.removeClass('loading');
+									}, 50);
 
-			};
+								}
+								else
+									xf.removeClass('loading');
 
-			$menu._toggle = function() {
+							}, settings.carousels.fadeDelay);
+						}, 50);
+					}
 
-				if ($menu._lock())
-					$body.toggleClass('is-menu-visible');
+				// Main.
+					$t._update = function() {
+						pos = 0;
+						rightLimit = (-1 * reelWidth) + $window.width();
+						leftLimit = 0;
+						$t._updatePos();
+					};
 
-			};
+					if (skel.vars.IEVersion < 9)
+						$t._updatePos = function() { $reel.css('left', pos); };
+					else
+						$t._updatePos = function() { $reel.css('transform', 'translate(' + pos + 'px, 0)'); };
 
-			$menu
-				.appendTo($body)
-				.on('click', function(event) {
+				// Forward.
+					$forward
+						.appendTo($t)
+						.hide()
+						.mouseenter(function(e) {
+							timerId = window.setInterval(function() {
+								pos -= settings.carousels.speed;
 
-					event.stopPropagation();
+								if (pos <= rightLimit)
+								{
+									window.clearInterval(timerId);
+									pos = rightLimit;
+								}
 
-					// Hide.
-						$menu._hide();
+								$t._updatePos();
+							}, 10);
+						})
+						.mouseleave(function(e) {
+							window.clearInterval(timerId);
+						});
 
-				})
-				.find('.inner')
-					.on('click', '.close', function(event) {
+				// Backward.
+					$backward
+						.appendTo($t)
+						.hide()
+						.mouseenter(function(e) {
+							timerId = window.setInterval(function() {
+								pos += settings.carousels.speed;
 
-						event.preventDefault();
-						event.stopPropagation();
-						event.stopImmediatePropagation();
+								if (pos >= leftLimit) {
 
-						// Hide.
-							$menu._hide();
+									window.clearInterval(timerId);
+									pos = leftLimit;
 
-					})
-					.on('click', function(event) {
-						event.stopPropagation();
-					})
-					.on('click', 'a', function(event) {
+								}
 
-						var href = $(this).attr('href');
+								$t._updatePos();
+							}, 10);
+						})
+						.mouseleave(function(e) {
+							window.clearInterval(timerId);
+						});
 
-						event.preventDefault();
-						event.stopPropagation();
+				// Init.
+					$window.load(function() {
 
-						// Hide.
-							$menu._hide();
+						reelWidth = $reel[0].scrollWidth;
 
-						// Redirect.
-							window.setTimeout(function() {
-								window.location.href = href;
-							}, 350);
+						skel.on('change', function() {
+
+							if (skel.vars.touch) {
+
+								$reel
+									.css('overflow-y', 'hidden')
+									.css('overflow-x', 'scroll')
+									.scrollLeft(0);
+								$forward.hide();
+								$backward.hide();
+
+							}
+							else {
+
+								$reel
+									.css('overflow', 'visible')
+									.scrollLeft(0);
+								$forward.show();
+								$backward.show();
+
+							}
+
+							$t._update();
+
+						});
+
+						$window.resize(function() {
+							reelWidth = $reel[0].scrollWidth;
+							$t._update();
+						}).trigger('resize');
 
 					});
 
-			$body
-				.on('click', 'a[href="#menu"]', function(event) {
-
-					event.stopPropagation();
-					event.preventDefault();
-
-					// Toggle.
-						$menu._toggle();
-
-				})
-				.on('keydown', function(event) {
-
-					// Hide on escape.
-						if (event.keyCode == 27)
-							$menu._hide();
-
-				});
+			});
 
 	});
 
